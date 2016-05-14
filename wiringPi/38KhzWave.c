@@ -5,27 +5,27 @@
 #include <unistd.h>
 #include <time.h>
 #include <stdbool.h>
-#include <softPwm.h>
 
-#define ITERATIONS 770
-#define INPUT_PIN  3
-#define OUTPUT_PIN 1
+#define PWM_PIN 18
 
 int main (int argc, char *argv[])
 {
-  int i;
+//  int i;
 
   wiringPiSetupGpio(); // Broadcomm GPIO Pinout
 
-  pinMode(OUTPUT_PIN, PWM_OUTPUT);
+  pinMode(PWM_PIN, PWM_OUTPUT);
   pwmSetMode(PWM_MODE_MS);
 
-  // pwmFrequency in Hz = 19.2e6 Hz / pwmClock / pwmRange.
+  // pwmFrequency in Hz = 19.2e6 Hz / pwmClock (freq divisor) / pwmRange (counter that increments).
   // SetRange is 2 to 4095
-  // 
-  pwmSetClock(384); //clock at 50kHz (20us tick)
-  pwmSetRange(1000); //range at 1000 ticks (20ms)
-  pwmWrite(1, 75);  //theretically 50 (1ms) to 100 (2ms) on my servo 30-130 works okpinMode(1, PWM_OUTPUT);
+  //
+  //pwmWrite(1, 75);  //theretically 50 (1ms) to 100 (2ms) on my servo 30-130 works okpinMode(1, PWM_OUTPUT);
+
+  pwmSetClock(50); //Clock divided by this value is how fast the range counter increments
+  pwmSetRange(10); // Half of the counter low half high
+  pwmWrite(PWM_PIN, 5);  //theretically 50 (1ms) to 100 (2ms) on my servo 30-130 works okpinMode(1, PWM_OUTPUT);
+
 
 
 /*
