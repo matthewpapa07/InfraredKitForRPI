@@ -5,14 +5,20 @@
 #include <unistd.h>
 #include <time.h>
 
-#define ITERATIONS 100
-#define INPUT_PIN  3
-#define OUTPUT_PIN 4
-#define PWM_PIN    18
+#define WATCHDOG_SECONDS  10
+#define ITERATIONS        900
+#define INPUT_PIN         3
+#define OUTPUT_PIN        4
+#define PWM_PIN           18
 
 unsigned long int results[ITERATIONS];
+struct timespec WatchdogTimer;
 
 void ChangePwm(int HighOrLo);
+void WatchDogSet(void);
+void PrintResultsArray(int NumResults);
+int IsWatchDogExpired(void);
+int RecordData(void);
 
 //
 // Initialize GPIOs
@@ -25,6 +31,10 @@ void InitializeGpios(void)
   pinMode(OUTPUT_PIN, OUTPUT);
   pinMode(PWM_PIN, PWM_OUTPUT);
   pwmSetMode(PWM_MODE_MS);
+  pwmSetClock(50); //Clock divided by this value is how fast the range counter increments
+  pwmSetRange(10); // Half of the counter low half high
+
+  ChangePwm(0);
 
   digitalWrite(OUTPUT_PIN, 0);
 }
@@ -35,16 +45,25 @@ void InitializeGpios(void)
 int main (int argc, char *argv[])
 {
   int i ;
+  int NumberOfValues;
   InitializeGpios();
 
+  for(i = 0; i < ITERATIONS; i++)
+    results[0] = 0;
+
+  printf("Setting Priority %d\n", piHiPri(99));
+
+  NumberOfValues = RecordData();
+  PrintResultsArray(NumberOfValues);
+/*
   for(i=0; i< 1000; i++)
   {
-    ChangePwm(0);
-    delay(10);
     ChangePwm(1);
-    delay(10);
+    delay(13);
+    ChangePwm(0);
+    delay(13);
   }
-
+*/
   return 0;
 }
 
@@ -57,23 +76,59 @@ int RecordData(void)
   int i, val;
   struct timespec timeStruct;
 
-  digitalWrite(OUTPUT_PIN, 0);
+  ChangePwm(0); // Null this out to avoid any interference
+  delay(1);
+  WatchDogSet();
+
+  printf("Waiting To Start Recording\n");
+  // initial value
   val = digitalRead(INPUT_PIN);
 
-  printf("Start Program\n");
+  if(val != 1)
+    printf("Signal in process, killing RecordData\n");
 
+  // initial time (t0)
   clock_gettime(CLOCK_REALTIME, &timeStruct);
 
-  for(i=0; i<ITERATIONS; i++)
+  //
+  // When waveform is on signal is low, otherwise it is high. Unless it is on for too long, the recevier shows low again
+  //
+  for(i=0; i<ITERATIONS && !IsWatchDogExpired(); i++)
   {
-    while((val == digitalRead(INPUT_PIN)))
+    while(val == digitalRead(INPUT_PIN) && !IsWatchDogExpired())
     {
     }
-    val = digitalRead(INPUT_PIN);
     clock_gettime(CLOCK_REALTIME, &timeStruct);
+    val = digitalRead(INPUT_PIN);
+
     results[i] = timeStruct.tv_nsec;
   }
+
+  if(i == (ITERATIONS - 1))
+    printf("WARNING: Message buffer overflow. Increase buffer size.\n");
+
   return i;
+}
+
+void WatchDogSet(void)
+{
+  clock_gettime(CLOCK_REALTIME, &WatchdogTimer);
+
+  WatchdogTimer.tv_sec += WATCHDOG_SECONDS;
+
+//  printf("Watchdog Timer will expire in %d Sec\n", (int)WatchdogTimer.tv_sec);
+
+}
+
+int IsWatchDogExpired(void)
+{
+  struct timespec CompareTime;
+  clock_gettime(CLOCK_REALTIME, &CompareTime);
+
+  if(CompareTime.tv_sec > WatchdogTimer.tv_sec)
+    return 1;
+   else
+    return 0;
 }
 
 //
@@ -81,13 +136,19 @@ int RecordData(void)
 //
 void PrintResultsArray(int NumResults)
 {
-  int i;
+  int i, val = 1;
+  unsigned long int NetTime;
+  printf("\n Printing Results \n");
 
-  printf("\n Middle \n");
-
-  for(i=0; i<ITERATIONS; i++)
+  for(i = 1; i < (NumResults - 1); i++)
   {
-    printf("Number %d is %lu\n", i, results[i]);
+    NetTime = results[i] - results[i - 1];
+//    printf("Table # %d Logic Value %d for %lu\n", i, val, NetTime);
+    printf("%lu\n", NetTime);
+    if(val == 0)
+      val = 1;
+    else
+      val = 0;
   }
 
 //  for(i=0; i< ITERATIONS - 1; i++)
@@ -123,10 +184,8 @@ void ChangePwm(int HighOrLo)
   //
   //pwmWrite(1, 75);  //theoretically 50 (1ms) to 100 (2ms) on my servo 30-130 works okpinMode(1, PWM_OUTPUT);
 
-  pwmSetClock(50); //Clock divided by this value is how fast the range counter increments
-  pwmSetRange(10); // Half of the counter low half high
   if(HighOrLo == 0)
-    pwmWrite(PWM_PIN, 1024);  //theoretically 50 (1ms) to 100 (2ms) on my servo 30-130 works okpinMode(1, PWM_OUTPUT);
+    pwmWrite(PWM_PIN, 0);  //theoretically 50 (1ms) to 100 (2ms) on my servo 30-130 works okpinMode(1, PWM_OUTPUT);
   else
     pwmWrite(PWM_PIN, 5);
 }
