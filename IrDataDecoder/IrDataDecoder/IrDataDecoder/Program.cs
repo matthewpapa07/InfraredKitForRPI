@@ -15,7 +15,7 @@ namespace IrDataDecoder
 
             // Read the file and display it line by line.
             System.IO.StreamReader file =
-                new System.IO.StreamReader(@"C:\dev\PiTrunk\PiProjects\IrDataDecoder\IrDataDecoder\output5.txt");
+                new System.IO.StreamReader(@"C:\dev\PiTrunk\PiProjects\IrDataDecoder\IrDataDecoder\output1.txt");
             while ((line = file.ReadLine()) != null)
             {
                 line.Trim();
@@ -70,6 +70,27 @@ namespace IrDataDecoder
             string outStr = ByteArrayToString2(Result);
             System.Console.WriteLine(outStr);
 
+            System.IO.File.Delete(@"C:\dev\PiTrunk\PiProjects\IrDataDecoder\IrDataDecoder\OutBits.h");
+
+            List<string> OutputLines = new List<string>(1000);
+            OutputLines.Add("// This is an automatically generated file by irDataDecoder\n");
+            OutputLines.Add("//" + outStr + "\n");
+            OutputLines.Add("\n");
+            OutputLines.Add("#define OUTBITS_LENGTH  " + bitArray.Count);
+            OutputLines.Add("\n");
+            OutputLines.Add("unsigned char OutBits[] = { \n");
+
+            string ActualBits = "";
+            for (int i = 0; i < bitArray.Count; i++)
+            {
+                if ((i % 20) == 0)
+                    ActualBits += "\n";
+                ActualBits += boolToStr(bitArray[i]) + ",";
+            }
+            OutputLines.Add(ActualBits + "\n 0 \n };");
+
+            System.IO.File.WriteAllLines(@"C:\dev\PiTrunk\PiProjects\IrDataDecoder\IrDataDecoder\OutBits.h", OutputLines.ToArray());
+
         }
 
         public static byte boolToBit(bool input)
@@ -78,6 +99,14 @@ namespace IrDataDecoder
                 return 1;
             else
                 return 0;
+        }
+
+        public static string boolToStr(bool input)
+        {
+            if (input)
+                return "1";
+            else
+                return "0";
         }
 
         public static string ByteArrayToString(byte[] ba)
