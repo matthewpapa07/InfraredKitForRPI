@@ -4,12 +4,16 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
+#include "OutBits.h"
 
 #define WATCHDOG_SECONDS  10
 #define ITERATIONS        900
 #define INPUT_PIN         3
 #define OUTPUT_PIN        4
 #define PWM_PIN           18
+//#define BAUD_RATE_NSECS   434336
+#define BAUD_RATE_NSECS   433656
+#define ONE_BIL_NSECS     1000000000
 
 unsigned long int results[ITERATIONS];
 struct timespec WatchdogTimer;
@@ -19,6 +23,8 @@ void WatchDogSet(void);
 void PrintResultsArray(int NumResults);
 int IsWatchDogExpired(void);
 int RecordData(void);
+void Transmit(void);
+int IsCurrentGreaterThanFuture(struct timespec *currentTime, struct timespec *futureTime);
 
 //
 // Initialize GPIOs
@@ -45,16 +51,17 @@ void InitializeGpios(void)
 int main (int argc, char *argv[])
 {
   int i ;
-  int NumberOfValues;
+//  int NumberOfValues;
   InitializeGpios();
 
+  // Initialize Array
   for(i = 0; i < ITERATIONS; i++)
     results[0] = 0;
 
   printf("Setting Priority %d\n", piHiPri(99));
 
-  NumberOfValues = RecordData();
-  PrintResultsArray(NumberOfValues);
+  Transmit();
+//  NumberOfValues = RecordData();
 /*
   for(i=0; i< 1000; i++)
   {
@@ -77,7 +84,6 @@ int RecordData(void)
   struct timespec timeStruct;
 
   ChangePwm(0); // Null this out to avoid any interference
-  delay(1);
   WatchDogSet();
 
   printf("Waiting To Start Recording\n");
@@ -134,7 +140,7 @@ int IsWatchDogExpired(void)
 //
 // Transmit Array
 //
-void PrintResultsArray(int NumResults)
+void PrintResultsArrayRaw(int NumResults)
 {
   int i, val = 1;
   unsigned long int NetTime;
@@ -157,25 +163,68 @@ void PrintResultsArray(int NumResults)
 //  }
 }
 
-void Transmit(int NumResults)
+//
+// Get minimum value to attempt to discover a minimum bit resolution
+//
+int GetSingleBitTime(int NumResults)
 {
-  int val;
+  int i;
+  unsigned long int min = 0;
+
+  // Arbitrarily large compare number
+  min = 0xFFFFFFFF;
+
+  for(i = 1; i < (NumResults - 1); i++)
+  {
+    if(min > (results[i] - results[i - 1]))
+      min = results[i] - results[i - 1];
+  }
+  return (int) min;
+}
+
+void Transmit(void)
+{
   int i;
 
-  val = 0;
-  printf("Retransmitting\n");
+  struct timespec currentTime;
+  struct timespec futureTime;
 
-  delay(3000);
-  for(i=0; i<ITERATIONS - 1; i++)
+  ChangePwm(0); // Null this out to avoid any interference
+
+  printf("Transmitting\n");
+  clock_gettime(CLOCK_REALTIME, &futureTime);
+
+ // Cant use a simple delay between transmissions here because the delays aer not precise (linux is not not quite an RTOS)
+ // The clock however should always be 100% accurate, so we will poll that and change output accordingly. Ideally this will
+ // be precise enough
+  for(i = 0; i < OUTBITS_LENGTH; i++)
   {
-    if(val >0)
-      val = 0;
-    else
-      val = 1;
+    ChangePwm(OutBits[i]);
+    futureTime.tv_nsec = (futureTime.tv_nsec + BAUD_RATE_NSECS)%ONE_BIL_NSECS; // Increment and account for any overflow with modulus
+    futureTime.tv_sec = futureTime.tv_sec + (int)((futureTime.tv_nsec + BAUD_RATE_NSECS)/ONE_BIL_NSECS);
+    do
+    {
+      clock_gettime(CLOCK_REALTIME, &currentTime);
+    }
+    while(!IsCurrentGreaterThanFuture(&currentTime, &futureTime));
   }
 
-  printf("End Retransmit\n");
+  printf("End Transmit\n");
 }
+
+int IsCurrentGreaterThanFuture(struct timespec *currentTime, struct timespec *futureTime)
+{
+  if(currentTime->tv_sec > futureTime->tv_sec)
+    return 1;
+  if(currentTime->tv_sec == futureTime->tv_sec)
+  {
+    if(currentTime->tv_nsec > futureTime->tv_nsec)
+      return 1;
+  }
+  // Return No
+  return 0;
+}
+
 
 void ChangePwm(int HighOrLo)
 {
