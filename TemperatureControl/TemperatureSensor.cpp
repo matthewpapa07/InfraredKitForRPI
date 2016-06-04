@@ -33,9 +33,9 @@ double dewPoint(double celsius, double humidity)
 int ReadSensor(int *temperature, int *humidity)
 {
   // BUFFER TO RECEIVE
-  uint8_t bits[5];
-  uint8_t cnt = 7;
-  uint8_t idx = 0;
+  int bits[5];
+  int cnt = 7;
+  int idx = 0;
   int i;
  
   // EMPTY BUFFER
@@ -90,7 +90,7 @@ int ReadSensor(int *temperature, int *humidity)
   humidity    = bits[0]; 
   temperature = bits[2]; 
 
-  uint8_t sum = bits[0] + bits[2];  
+  int sum = bits[0] + bits[2];  
 
   //Check for checksum error
   if (bits[4] != sum) 
