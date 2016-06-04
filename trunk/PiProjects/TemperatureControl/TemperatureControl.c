@@ -239,34 +239,35 @@ void TempHumdityControlLoop(void)
        default:
          FailCount++;
          printf("Reading FAILED, waiting and trying again. Incrementing fail count to %d. Waiting... \n", FailCount);
-         delay(60000);
+         delay(2 * 60000);
          continue;
     }
 
-    if((temperature > SET_TEMP) || (humidity > MAX_HUMIDITY))
+    SetCold = -1;
+    if((temperature > MAX_TEMP) || (humidity > MAX_HUMIDITY))
     {
       SetCold = 1;
     }
-    else
-    {
-      SetCold = 0;
-    }
-
     // Dont freeze the room and collect extra humidity
     if(temperature < MIN_TEMP)
     {
       SetCold = 0;
     }
 
-    if(SetCold == 1)
+    switch(SetCold)
     {
-      TransmitPattern(SignalOnDehumidify, SIGNAL_ON_DEHUMIDIFY_LENGTH);
-      printf("SENT cold signal \n");
-    }
-    else
-    {
-      TransmitPattern(SignalOff, SIGNAL_OFF_LENGTH);
-      printf("SENT off signal \n");
+      case 1:
+        TransmitPattern(SignalOnDehumidify, SIGNAL_ON_DEHUMIDIFY_LENGTH);
+        printf("SENT cold signal \n");
+        break;
+      case 0:
+        TransmitPattern(SignalOff, SIGNAL_OFF_LENGTH);
+        printf("SENT off signal \n");
+        break;
+      case -1:
+      default:
+        printf("Doing Nothing, temp is within range\n");
+        break;
     }
 
     // Re evaluate position every 5 minutes
