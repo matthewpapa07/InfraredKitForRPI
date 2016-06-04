@@ -209,7 +209,7 @@ void ChangePwm(int HighOrLo)
 
 void TempHumdityControlLoop(void)
 {
-  int temperature, humidity, status;
+  int temperature = 0, humidity = 0, status = 0;
 
   status = ReadSensor(&temperature, &humidity);
   printf("Gathering Initial Temperature and Humidity Readings \n");
