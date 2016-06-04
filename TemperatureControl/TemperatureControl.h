@@ -10,7 +10,7 @@
 #define ITERATIONS        900
 #define INPUT_PIN         3
 #define OUTPUT_PIN        4
-#define SENSOR_PIN        5
+#define SENSOR_PIN        23
 #define PWM_PIN           18
 //#define BAUD_RATE_NSECS   434336
 #define BAUD_RATE_NSECS   433656
