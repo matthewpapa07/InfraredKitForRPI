@@ -1,4 +1,4 @@
-#include "IrRepeat.h"
+#include "TemperatureControl.h"
 
 //
 // Initialize GPIOs
