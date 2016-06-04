@@ -1,4 +1,6 @@
+#include "TemperatureControl.h"
 
+#include <math.h>
 
 //Celsius to Kelvin conversion
 double Kelvin(double celsius)

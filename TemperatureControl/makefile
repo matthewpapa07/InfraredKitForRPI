@@ -1,14 +1,14 @@
 CC = gcc
-LIBS = -lrt -lwiringPi
+LIBS = -lrt -lwiringPi -lm
 DEPS = TemperatureControl.h
 CFLAGS = -Wall
 OBJ = TemperatureControl.o TemperatureSensor.o
 
 %.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 %.o: %.cpp $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-IrRepeat: $(OBJ)
+TemperatureControl : $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)

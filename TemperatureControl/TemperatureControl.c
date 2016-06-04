@@ -1,5 +1,8 @@
 #include "TemperatureControl.h"
 
+unsigned long int results[ITERATIONS];
+struct timespec WatchdogTimer;
+
 //
 // Initialize GPIOs
 //
