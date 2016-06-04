@@ -18,6 +18,7 @@
 
 // Temperature/Humidity defines. All temperatures are in F
 #define SET_TEMP            72
+#define MIN_TEMP            68
 #define MAX_HUMIDITY        55
 #define SET_RETRIES         5
 
@@ -28,7 +29,7 @@ void WatchDogSet(void);
 void PrintResultsArray(int NumResults);
 int  IsWatchDogExpired(void);
 int  RecordData(void);
-void TransmitPattern(char OutBits[], int OutBitsSize);
+void TransmitPattern(unsigned char OutBits[], int OutBitsSize);
 int  IsCurrentGreaterThanFuture(struct timespec *currentTime, struct timespec *futureTime);
 void TempHumdityControlLoop(void);
 
