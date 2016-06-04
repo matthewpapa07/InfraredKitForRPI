@@ -16,10 +16,8 @@
 #define BAUD_RATE_NSECS   433656
 #define ONE_BIL_NSECS     1000000000
 
-unsigned long int results[ITERATIONS];
-struct timespec WatchdogTimer;
-
 // Infrared Functions
+void InitializeGpios(void);
 void ChangePwm(int HighOrLo);
 void WatchDogSet(void);
 void PrintResultsArray(int NumResults);
@@ -28,7 +26,9 @@ int RecordData(void);
 void Transmit(void);
 int IsCurrentGreaterThanFuture(struct timespec *currentTime, struct timespec *futureTime);
 
+/*
 // Sensor Functions
 int ReadSensor(int *temperature, int *humidity);
 double dewPoint(double celsius, double humidity);
 double Kelvin(double celsius);
+*/
