@@ -87,8 +87,8 @@ int ReadSensor(int *temperature, int *humidity)
 
   // WRITE TO RIGHT VARS
         // as bits[1] and bits[3] are allways zero they are omitted in formulas.
-  humidity    = bits[0]; 
-  temperature = bits[2]; 
+  *humidity    = bits[0]; 
+  *temperature = bits[2]; 
 
   int sum = bits[0] + bits[2];  
 
