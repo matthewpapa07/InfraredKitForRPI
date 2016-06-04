@@ -210,6 +210,8 @@ void ChangePwm(int HighOrLo)
 void TempHumdityControlLoop(void)
 {
   int temperature = 0, humidity = 0, status = 0;
+  int FailCount = 0;
+  int SetCold = 0;
 
   status = ReadSensor(&temperature, &humidity);
   printf("Gathering Initial Temperature and Humidity Readings \n");
@@ -221,8 +223,56 @@ void TempHumdityControlLoop(void)
     printf("Reading FAILED, exiting control loop \n");
     return;
   }
+  delay(60000);
   
+  while(1)
+  {
+    status = ReadSensor(&temperature, &humidity);
+    switch(status)
+    {
+       case 0:
+         // Good case, proceed here
+         printf("Read Temperature %d and Humidity %d\n", temperature, humidity);
+         FailCount = 0;
+         break;
+       case -1:
+       case -2:
+       default:
+         FailCount++;
+         printf("Reading FAILED, waiting and trying again. Incrementing fail count to %d. Waiting... \n", FailCount);
+         delay(60000);
+         continue;
+    }
 
+    if((temperature > SET_TEMP) || (humidity > MAX_HUMIDITY))
+    {
+      SetCold = 1;
+    }
+    else
+    {
+      SetCold = 0;
+    }
+
+    // Dont freeze the room and collect extra humidity
+    if(temperature < MIN_TEMP)
+    {
+      SetCold = 0;
+    }
+
+    if(SetCold == 1)
+    {
+      TransmitPattern(SignalOnDehumidify, SIGNAL_ON_DEHUMIDIFY_LENGTH);
+      printf("SENT cold signal \n");
+    }
+    else
+    {
+      TransmitPattern(SignalOff, SIGNAL_OFF_LENGTH);
+      printf("SENT off signal \n");
+    }
+
+    // Re evaluate position every 5 minutes
+    delay(60000 * 5);
+  }
 }
 
 
