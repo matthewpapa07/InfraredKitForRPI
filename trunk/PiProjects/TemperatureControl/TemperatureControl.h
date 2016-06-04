@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
-#include "OutBits.h"
 
 #define WATCHDOG_SECONDS  10
 #define ITERATIONS        900
