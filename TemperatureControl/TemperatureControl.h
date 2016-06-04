@@ -29,7 +29,7 @@ void WatchDogSet(void);
 void PrintResultsArray(int NumResults);
 int  IsWatchDogExpired(void);
 int  RecordData(void);
-void Transmit(char OutBits[], int OutBitsSize)
+void TransmitPattern(char OutBits[], int OutBitsSize)
 int  IsCurrentGreaterThanFuture(struct timespec *currentTime, struct timespec *futureTime);
 void TempHumdityControlLoop(void);
 

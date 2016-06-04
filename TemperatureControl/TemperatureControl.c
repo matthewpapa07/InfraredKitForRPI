@@ -150,7 +150,7 @@ int GetSingleBitTime(int NumResults)
   return (int) min;
 }
 
-void Transmit(char OutBits[], int OutBitsSize)
+void TransmitPattern(char OutBits[], int OutBitsSize)
 {
   int i;
 
