@@ -17,8 +17,7 @@
 #define ONE_BIL_NSECS     1000000000
 
 // Temperature/Humidity defines. All temperatures are in F
-#define DEFAULT_SET_TEMP    72
-#define TOO_HOT_TEMP        76
+#define SET_TEMP            72
 #define MAX_HUMIDITY        55
 #define SET_RETRIES         5
 
