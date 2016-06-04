@@ -1,4 +1,5 @@
 #include "TemperatureControl.h"
+#include "OutBits.h"
 
 unsigned long int results[ITERATIONS];
 struct timespec WatchdogTimer;
