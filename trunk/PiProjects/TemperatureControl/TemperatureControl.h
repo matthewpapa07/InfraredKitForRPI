@@ -26,9 +26,9 @@ int RecordData(void);
 void Transmit(void);
 int IsCurrentGreaterThanFuture(struct timespec *currentTime, struct timespec *futureTime);
 
-/*
+
 // Sensor Functions
 int ReadSensor(int *temperature, int *humidity);
 double dewPoint(double celsius, double humidity);
 double Kelvin(double celsius);
-*/
+
