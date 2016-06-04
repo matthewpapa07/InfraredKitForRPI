@@ -4,10 +4,10 @@
 
 
 
-#define OUTBITS_LENGTH  760
+#define SIGNAL_OFF_LENGTH  760
 
 
-unsigned char OutBits[] = { 
+unsigned char SignalOff[] = { 
 
 
 1,1,1,1,1,1,1,1,0,0,0,0,1,0,0,0,1,0,0,0,

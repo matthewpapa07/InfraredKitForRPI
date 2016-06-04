@@ -1,5 +1,8 @@
 #include "TemperatureControl.h"
-#include "OutBits.h"
+
+// Bit patterns for dehumifify
+#include "SignalOff.h"
+#include "SignalOnDehumidify.h"
 
 unsigned long int results[ITERATIONS];
 struct timespec WatchdogTimer;
@@ -14,6 +17,7 @@ void InitializeGpios(void)
   pinMode(INPUT_PIN, INPUT);
   pinMode(OUTPUT_PIN, OUTPUT);
   pinMode(PWM_PIN, PWM_OUTPUT);
+  pinMode(SENSOR_PIN, INPUT);
   pwmSetMode(PWM_MODE_MS);
   pwmSetClock(50); //Clock divided by this value is how fast the range counter increments
   pwmSetRange(10); // Half of the counter low half high
@@ -36,19 +40,10 @@ int main (int argc, char *argv[])
   for(i = 0; i < ITERATIONS; i++)
     results[0] = 0;
 
-  printf("Setting Priority %d\n", piHiPri(99));
+  printf("Setting Priority to: %d . 0 Is the highest.\n", piHiPri(99));
 
-  Transmit();
-//  NumberOfValues = RecordData();
-/*
-  for(i=0; i< 1000; i++)
-  {
-    ChangePwm(1);
-    delay(13);
-    ChangePwm(0);
-    delay(13);
-  }
-*/
+  TempHumdityControlLoop();
+
   return 0;
 }
 
@@ -134,11 +129,6 @@ void PrintResultsArrayRaw(int NumResults)
     else
       val = 0;
   }
-
-//  for(i=0; i< ITERATIONS - 1; i++)
-//  {
-//   results[i] = results[i+1] - results[i];
-//  }
 }
 
 //
@@ -160,7 +150,7 @@ int GetSingleBitTime(int NumResults)
   return (int) min;
 }
 
-void Transmit(void)
+void Transmit(char OutBits[], int OutBitsSize)
 {
   int i;
 
@@ -175,7 +165,7 @@ void Transmit(void)
  // Cant use a simple delay between transmissions here because the delays aer not precise (linux is not not quite an RTOS)
  // The clock however should always be 100% accurate, so we will poll that and change output accordingly. Ideally this will
  // be precise enough
-  for(i = 0; i < OUTBITS_LENGTH; i++)
+  for(i = 0; i < OutBitsSize; i++)
   {
     ChangePwm(OutBits[i]);
     futureTime.tv_nsec = (futureTime.tv_nsec + BAUD_RATE_NSECS)%ONE_BIL_NSECS; // Increment and account for any overflow with modulus
@@ -216,4 +206,23 @@ void ChangePwm(int HighOrLo)
   else
     pwmWrite(PWM_PIN, 5);
 }
+
+void TempHumdityControlLoop(void)
+{
+  int temperature, humidity, status;
+
+  status = ReadSensor(&temperature, &humidity);
+  printf("Gathering Initial Temperature and Humidity Readings \n");
+  if(status == 0) {
+    printf("Temperature: &d\n", temperature);
+    printf("Humidity: &d\n", humidity);
+  }
+  else {
+    printf("Reading FAILED, exiting control loop \n");
+    return;
+  }
+  
+
+}
+
 

@@ -2,12 +2,20 @@
 
 #include <math.h>
 
+
+//Celsius to Fahrenheit conversion
+double Fahrenheit(double celsius)
+{
+  return 1.8 * celsius + 32;
+}
+
 //Celsius to Kelvin conversion
 double Kelvin(double celsius)
 {
     return celsius + 273.15;
 }
 
+//
 // dewPoint function NOAA
 // reference (1) : http://wahiduddin.net/calc/density_algorithms.htm
 // reference (2) : http://www.colorado.edu/geography/weather_station/Geog_site/about.htm
@@ -88,7 +96,7 @@ int ReadSensor(int *temperature, int *humidity)
   // WRITE TO RIGHT VARS
         // as bits[1] and bits[3] are allways zero they are omitted in formulas.
   *humidity    = bits[0]; 
-  *temperature = bits[2]; 
+  *temperature = (int)Fahrenheit(bits[2]); 
 
   int sum = bits[0] + bits[2];  
 

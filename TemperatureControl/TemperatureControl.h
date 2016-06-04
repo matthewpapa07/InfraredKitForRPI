@@ -1,3 +1,4 @@
+
 #include <wiringPi.h>
 #include <sys/time.h>
 #include <stdlib.h>
@@ -15,19 +16,26 @@
 #define BAUD_RATE_NSECS   433656
 #define ONE_BIL_NSECS     1000000000
 
+// Temperature/Humidity defines. All temperatures are in F
+#define DEFAULT_SET_TEMP    72
+#define TOO_HOT_TEMP        76
+#define MAX_HUMIDITY        55
+#define SET_RETRIES         5
+
 // Infrared Functions
 void InitializeGpios(void);
 void ChangePwm(int HighOrLo);
 void WatchDogSet(void);
 void PrintResultsArray(int NumResults);
-int IsWatchDogExpired(void);
-int RecordData(void);
-void Transmit(void);
-int IsCurrentGreaterThanFuture(struct timespec *currentTime, struct timespec *futureTime);
+int  IsWatchDogExpired(void);
+int  RecordData(void);
+void Transmit(char OutBits[], int OutBitsSize)
+int  IsCurrentGreaterThanFuture(struct timespec *currentTime, struct timespec *futureTime);
+void TempHumdityControlLoop(void);
 
 
 // Sensor Functions
-int ReadSensor(int *temperature, int *humidity);
+int    ReadSensor(int *temperature, int *humidity);
 double dewPoint(double celsius, double humidity);
 double Kelvin(double celsius);
-
+double Fahrenheit(double celsius);
