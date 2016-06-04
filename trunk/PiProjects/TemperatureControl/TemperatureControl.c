@@ -214,8 +214,8 @@ void TempHumdityControlLoop(void)
   status = ReadSensor(&temperature, &humidity);
   printf("Gathering Initial Temperature and Humidity Readings \n");
   if(status == 0) {
-    printf("Temperature: &d\n", temperature);
-    printf("Humidity: &d\n", humidity);
+    printf("Temperature: %d\n", temperature);
+    printf("Humidity: %d\n", humidity);
   }
   else {
     printf("Reading FAILED, exiting control loop \n");
