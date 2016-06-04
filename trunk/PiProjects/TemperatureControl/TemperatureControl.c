@@ -220,8 +220,7 @@ void TempHumdityControlLoop(void)
     printf("Humidity: %d\n", humidity);
   }
   else {
-    printf("Reading FAILED, exiting control loop \n");
-    return;
+    printf("Inital Reading FAILED\n");
   }
   delay(60000);
   
